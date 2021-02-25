@@ -61,7 +61,7 @@ def prcp():
 
     session.close()
 
-    # Create a dictionary from the row data and append to a list of precipitation
+    # Create a dictionary from the row data, and append to a list of precipitation
     precipitation = []
     for date, prcp in annual_data:
         prcp_dict = {}
@@ -99,7 +99,7 @@ def tobs():
 
     session.close()
 
-    # Create a dictionary from the row data and append to a list of temperature
+    # Create a dictionary from the row data, and append to a list of temperature
     temperature = []
     for date, tobs in annual_data:
         tobs_dict = {}
@@ -115,13 +115,30 @@ def temp1(start):
     session = Session(engine)
 
     """Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start date going forward."""
-    # Query
-    temperatures1 = session.query(func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs).\
+    # Queries
+    temp1_min = session.query(func.min(measurement.tobs)).\
         filter(measurement.date >= start).all()
-        
+
+    temp1_avg = session.query(func.avg(measurement.tobs)).\
+        filter(measurement.date >= start).all()
+
+    temp1_max = session.query(func.max(measurement.tobs)).\
+        filter(measurement.date >= start).all()    
+    
     session.close()
 
-    return jsonify(temperatures1)
+    # Create lists for evaluation keys and their corresponding values
+    class_list = ['TMIN', 'TAVG', 'TMAX']
+    temp1_results = [temp1_min[0], temp1_avg[0], temp1_max[0]]
+
+    # Create a dictionary from the evaluation keys and their corresponding values, and append to a list
+    temp1_list = []
+    for key, value in zip(class_list, temp1_results):
+        temp1_dict = {}
+        temp1_dict[key] = value
+        temp1_list.append(temp1_dict)
+
+    return jsonify(temp1_list)
 
 @app.route("/api/v1.0/<start>/<end>")
 def temp2(start, end):
@@ -130,13 +147,32 @@ def temp2(start, end):
 
     """Return a JSON list of the minimum temperature, the average temperature, and the max temperature between a given start and end date."""
     # Query
-    temperatures2 = session.query(func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs).\
+    temp2_min = session.query(func.min(measurement.tobs)).\
         filter(measurement.date <= end).\
         filter(measurement.date >= start).all()
 
+    temp2_avg = session.query(func.avg(measurement.tobs)).\
+        filter(measurement.date <= end).\
+        filter(measurement.date >= start).all()
+
+    temp2_max = session.query(func.max(measurement.tobs)).\
+        filter(measurement.date <= end).\
+        filter(measurement.date >= start).all()    
+    
     session.close()
 
-    return jsonify(temperatures2)   
+    # Create lists for evaluation keys and their corresponding values
+    class_list = ['TMIN', 'TAVG', 'TMAX']
+    temp2_results = [temp2_min[0], temp2_avg[0], temp2_max[0]]
+
+    # Create a dictionary from the evaluation keys and their corresponding values, and append to a list
+    temp2_list = []
+    for key, value in zip(class_list, temp2_results):
+        temp2_dict = {}
+        temp2_dict[key] = value
+        temp2_list.append(temp2_dict)
+
+    return jsonify(temp2_list)   
 
 if __name__ == '__main__':
     app.run(debug=True)
